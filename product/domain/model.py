@@ -14,8 +14,6 @@ class Money:
 
 
     
-# if I keep the "value" property, I can just make this into an ID Class
-# and inherit from it, but I dont really like id.value
 @dataclass(frozen=True)
 class PartOptionId:
     value: UUID = field(default_factory=uuid4)
@@ -63,7 +61,7 @@ class ProductPart:
         self.options.append(option)
 
     def remove_option(self, option_id: PartOptionId):
-        self.options = list(filter(lambda opt: opt.id != option_id, self.options))
+        self.options = [opt for opt in self.options if opt.id != option_id]
 
     def get_available_options(self) -> list[PartOption]:
         return [opt for opt in self.options if opt.in_stock]
@@ -78,7 +76,7 @@ class Product:
     description: str
     base_price: Money
     image_url: str
-    category: str
+    category: str 
     type: ProductType = "Bicycle" 
     parts: list[ProductPart] = []
 
@@ -100,3 +98,8 @@ class Product:
         self.type = type
         self.parts = parts
 
+    def add_product_part(self, product_part: ProductPart):
+        self.parts.append(product_part)
+
+    def remove_product_part(self, product_part_id: ProductPartId):
+        self.parts = [part for part in self.parts if part.id != product_part_id]
