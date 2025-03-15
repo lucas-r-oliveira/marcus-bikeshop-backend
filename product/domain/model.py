@@ -1,38 +1,16 @@
-from dataclasses import dataclass, field
-from uuid import uuid4, UUID
+from dataclasses import dataclass
 from typing import Literal
+from uuid import uuid4, UUID
 
-@dataclass(frozen=True)
-class Money:
-    amount: float
-    currency: str = "EUR"
-
-    def __add__(self, other):
-        if (self.currency != other.currency):
-            raise ValueError("Cannot add different currencies together")
-        return Money(self.amount + other.amount, self.currency)
-
-
-    
-@dataclass(frozen=True)
-class PartOptionId:
-    value: UUID = field(default_factory=uuid4)
-
-@dataclass(frozen=True)
-class ProductPartId:
-    value: UUID = field(default_factory=uuid4)
-
-@dataclass(frozen=True)
-class ProductId:
-    value: UUID = field(default_factory=uuid4)
-
+from common import Money
 
 class PartOption:
-    id: PartOptionId
+    id: UUID
     name: str
     in_stock: bool = True
 
     def __init__(self, name: str, in_stock: bool = True):
+        self.id = uuid4()
         self.name = name
         self.in_stock = in_stock
 
@@ -43,12 +21,13 @@ class PartOption:
         self.in_stock = False
 
 class ProductPart:
-    id: ProductPartId
+    id: UUID
     name: str
     options: list[PartOption] = []
 
 
     def __init__(self, name: str, options: list[PartOption] = []): 
+        self.id = uuid4()
         self.name = name
         self.options = options
 
@@ -60,7 +39,7 @@ class ProductPart:
         
         self.options.append(option)
 
-    def remove_option(self, option_id: PartOptionId):
+    def remove_option(self, option_id: UUID):
         self.options = [opt for opt in self.options if opt.id != option_id]
 
     def get_available_options(self) -> list[PartOption]:
@@ -71,7 +50,7 @@ type ProductType = Literal["Bicycle"]
 
 class Product:
     # aggregate or not?
-    id: ProductId
+    id: UUID
     name: str
     description: str
     base_price: Money
@@ -90,6 +69,7 @@ class Product:
             type: ProductType = "Bicycle",
             parts: list[ProductPart] = []
         ): 
+        self.id = uuid4()
         self.name = name
         self.description = description
         self.base_price = base_price
@@ -101,5 +81,5 @@ class Product:
     def add_product_part(self, product_part: ProductPart):
         self.parts.append(product_part)
 
-    def remove_product_part(self, product_part_id: ProductPartId):
+    def remove_product_part(self, product_part_id: UUID):
         self.parts = [part for part in self.parts if part.id != product_part_id]
