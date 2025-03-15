@@ -1,0 +1,24 @@
+[project]
+name = "marcus-bikeshop"
+version = "0.1.0"
+description = "Ecommerce site for Marcus' bikeshop business"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "flask==3.1",
+    "pydantic==2.10",
+    "sqlalchemy==2.0",
+
+    # should be in a dependencies.test or something    
+    "pytest",
+
+    "setuptools==61.0"
+]
+
+[tool.pytest.ini_options]
+pythonpath=[".", "src"]
+testpaths=["tests"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
