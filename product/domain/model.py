@@ -54,6 +54,20 @@ class ProductPart:
         self.name = name
         self.options = options
 
+    def add_option(self, name: str, in_stock: bool=True):
+        option = PartOption(
+            name=name,
+            in_stock=in_stock
+        )
+        
+        self.options.append(option)
+
+    def remove_option(self, option_id: PartOptionId):
+        self.options = list(filter(lambda opt: opt.id != option_id, self.options))
+
+    def get_available_options(self) -> list[PartOption]:
+        return [opt for opt in self.options if opt.in_stock]
+
    
 type ProductType = Literal["Bicycle"]
 
