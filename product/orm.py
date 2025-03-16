@@ -1,6 +1,4 @@
-
 from sqlalchemy import (
-    DECIMAL,
     TEXT,
     Boolean,
     Column,
@@ -37,7 +35,7 @@ product_part = Table(
     Column("name", String(255)),
     Column("description", String(511)),
 
-    # probably this will not work
+    #TODO: review
     # Column("part_option_id", ForeignKey("part_option.id")),
     Column("product_id", UUID, ForeignKey("products.id")),
 )
