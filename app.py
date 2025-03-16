@@ -1,10 +1,25 @@
 from flask import Flask, g
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker, scoped_session, registry
 
 from product.api import create_product_bp
 
-sqlalchemy_engine = create_engine("sqlite:////sqlite.db")
+#TODO: review metadata import
+from product.orm import start_mappers as map_product, metadata as product_metadata
+
+# Ideally comes from a config
+DATABASE_URL = "sqlite:///sqlite.db"
+sqlalchemy_engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+def init_db(metadata, engine):
+    metadata.create_all(bind=engine)
+
+mapper_registry = registry()
+
+map_product(mapper_registry)
+
+
+init_db(product_metadata, sqlalchemy_engine)
 SessionLocal = scoped_session(sessionmaker(bind=sqlalchemy_engine))
 
 app = Flask(__name__)

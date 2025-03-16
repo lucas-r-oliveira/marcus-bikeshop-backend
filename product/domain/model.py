@@ -1,7 +1,5 @@
-from dataclasses import dataclass
 from typing import Literal
 from uuid import uuid4, UUID
-from decimal import Decimal
 
 from common import Money
 
