@@ -2,10 +2,12 @@ from uuid import UUID
 from common import Money
 
 
+
+
 class CartItem:
     id: UUID # TODO: review: this is currently being generated in the frontend
     product_id: UUID
-    # TODO: Selected Product Config
+    product_configs: set[dict[UUID, UUID]] # part_id: option_id TODO:
     unit_price: Money
     image_url: str
     qty: int = 1
@@ -27,7 +29,7 @@ class CartItem:
 
 class Cart:
     id: UUID
-    # customer_id: 
+    user_id: UUID | None = None
     items: list[CartItem] = []
 
     # TODO: id 
@@ -46,6 +48,9 @@ class Cart:
                 
     def remove_item(self, item_id: UUID):
         self.items = [item for item in self.items if item.id != item_id]
+
+    def clear(self):
+        self.items = []
 
     def update_qty(self, item_id: UUID, qty: int):
         for item in self.items:

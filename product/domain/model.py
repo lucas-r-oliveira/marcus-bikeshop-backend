@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal
 from uuid import uuid4, UUID
+from decimal import Decimal
 
 from common import Money
 
@@ -63,7 +64,7 @@ class Product:
             self, 
             name: str,
             description: str,
-            base_price: Money,
+            base_price: Money | float,
             image_url: str,
             category: str,
             type: ProductType = "Bicycle",
@@ -72,7 +73,10 @@ class Product:
         self.id = uuid4()
         self.name = name
         self.description = description
-        self.base_price = base_price
+        if isinstance(base_price, float):
+            self.base_price = Money(base_price)
+        elif isinstance(base_price, Money):
+            self.base_price = base_price
         self.image_url = image_url
         self.category = category
         self.type = type
@@ -82,4 +86,5 @@ class Product:
         self.parts.append(product_part)
 
     def remove_product_part(self, product_part_id: UUID):
+        
         self.parts = [part for part in self.parts if part.id != product_part_id]
