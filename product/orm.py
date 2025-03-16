@@ -13,6 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import UUID
 
+from common import MoneyType
 from product.domain import model
 
 
@@ -47,7 +48,7 @@ product = Table(
     Column("id", UUID, primary_key=True),
     Column("name", String(255)),
     Column("description", String(511)),
-    Column("base_price", DECIMAL),
+    Column("base_price", MoneyType),
     Column("image_url", TEXT),
     Column("category", String(63))
 )

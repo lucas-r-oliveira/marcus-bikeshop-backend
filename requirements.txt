@@ -2,6 +2,8 @@
 #    uv pip compile pyproject.toml -o requirements.txt
 annotated-types==0.7.0
     # via pydantic
+asgiref==3.8.1
+    # via flask-pydantic-api
 blinker==1.9.0
     # via flask
 click==8.1.8
@@ -9,7 +11,10 @@ click==8.1.8
 flask==3.1.0
     # via
     #   marcus-bikeshop (pyproject.toml)
+    #   flask-pydantic-api
     #   flask-sqlalchemy
+flask-pydantic-api==1.5.0
+    # via marcus-bikeshop (pyproject.toml)
 flask-sqlalchemy==3.1.1
     # via marcus-bikeshop (pyproject.toml)
 iniconfig==2.0.0
@@ -27,9 +32,14 @@ packaging==24.2
 pluggy==1.5.0
     # via pytest
 pydantic==2.10.0
-    # via marcus-bikeshop (pyproject.toml)
+    # via
+    #   marcus-bikeshop (pyproject.toml)
+    #   flask-pydantic-api
+    #   pydantic-enhanced-serializer
 pydantic-core==2.27.0
     # via pydantic
+pydantic-enhanced-serializer==2.1.2
+    # via flask-pydantic-api
 pytest==8.3.5
     # via marcus-bikeshop (pyproject.toml)
 sqlalchemy==2.0.39

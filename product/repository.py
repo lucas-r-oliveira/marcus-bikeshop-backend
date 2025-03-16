@@ -21,9 +21,9 @@ class SQLAlchemyProductRepository(AbstractProductRepository):
         self.session = session
     # TODO: review rollbacks
 
-    def add(self, product: Product):
+    def add(self, product: Product) -> Product:
         self.session.add(product)
-        # self.session.flush() flush vs commit?
+        self.session.commit()
 
     def get(self, reference) -> Product | None:
         return self.session.query(Product).filter_by(reference=reference).one_or_none()

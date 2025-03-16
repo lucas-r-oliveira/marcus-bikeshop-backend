@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from sqlalchemy import DECIMAL, TypeDecorator
 
 @dataclass(frozen=True)
 class Money:
@@ -23,4 +24,21 @@ class Money:
 
 
     
+# conversion between the database and domain
+class MoneyType(TypeDecorator):
+    
+    # the type to store in the database
+    impl = DECIMAL
 
+    def process_bind_param(self, value, dialect):
+        # convert to db format
+        if value is None:
+            return None
+        return value.amount
+
+    def process_result_value(self, value, dialect):
+        # convert to domain
+        if value is None:
+            return None
+        # FIXME: EUR hardcode
+        return Money(amount=value, currency="EUR")

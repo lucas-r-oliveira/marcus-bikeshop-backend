@@ -9,6 +9,8 @@ dependencies = [
     "pydantic==2.10",
     "sqlalchemy==2.0.39",
     "Flask-SQLAlchemy==3.1.1",
+    "flask-pydantic-api==1.5.0",
+    "flask-pydantic-api[serializer]",
 
     # should be in a dependencies.test or something    
     "pytest",

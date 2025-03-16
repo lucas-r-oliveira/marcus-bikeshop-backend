@@ -45,9 +45,9 @@ class ProductService:
             category=category, 
             parts=parts
         )
-            
-        # TODO:
-        return self.product_repo.add(product)
+
+        self.product_repo.add(product)
+        return product
 
     def get_product(self, product_id: UUID) -> Product:
         return self.product_repo.get(product_id)
