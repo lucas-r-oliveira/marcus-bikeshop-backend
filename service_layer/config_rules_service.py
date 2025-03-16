@@ -38,11 +38,12 @@ class ConfigurationRuleService:
     def delete_rule(self, rule_id: UUID) -> bool:
         return self.rule_repository.delete(rule_id)
     
-    def validate_configuration(self, product_id: UUID, configuration: dict) -> tuple[bool, str | None]:
+    def validate_configurations(self, product_id: UUID, configurations: list[dict]) -> tuple[bool, str | None]:
         rules = self.rule_repository.get_rules_for_product(product_id)
         
         for rule in rules:
-            if not rule.validate(configuration):
-                return False, rule.error_message
+            for config in configurations:
+                if not rule.validate(config):
+                    return False, rule.error_message
         
         return True, None

@@ -23,6 +23,7 @@ class ProductService:
     product_repo: AbstractProductRepository
     config_rules_repo: AbstractConfigRulesRepository
 
+
     def __init__(self, product_repo: AbstractProductRepository):
         self.product_repo = product_repo
 
@@ -49,6 +50,7 @@ class ProductService:
         self.product_repo.add(product)
         return product
 
+    # FIXME:
     def get_product(self, product_id: UUID) -> Product:
         return self.product_repo.get(product_id)
 
