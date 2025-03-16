@@ -8,7 +8,7 @@ class AbstractProductRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get(self, reference) -> Product:
+    def get(self, reference) -> Product | None:
         raise NotImplementedError
 
     @abstractmethod
@@ -19,15 +19,17 @@ class AbstractProductRepository(ABC):
 class SQLAlchemyProductRepository(AbstractProductRepository):
     def __init__(self, session):
         self.session = session
+    # TODO: review rollbacks
 
     def add(self, product: Product):
         self.session.add(product)
+        # self.session.flush() flush vs commit?
 
-    def get(self, reference):
-        return self.session.query(Product).filter_by(reference=reference).one()
+    def get(self, reference) -> Product | None:
+        return self.session.query(Product).filter_by(reference=reference).one_or_none()
 
     def list(self):
-        return self.session.query(Product).all()
+        return self.session.query(Product).all() or []
     
     # def get_product_part_by_id(self, product_part_id: UUID, product_id: UUID) -> ProductPart | None:
     #     # FIXME: db_models

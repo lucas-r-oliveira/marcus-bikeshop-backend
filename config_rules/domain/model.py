@@ -8,9 +8,9 @@ class ConfigurationRule(ABC):
         self.product_id = product_id
         self.error_message = error_message
 
-        @abstractmethod
-        def validate(self, configuration: dict) -> bool:
-            raise NotImplementedError
+    @abstractmethod
+    def validate(self, configuration: dict) -> bool:
+        raise NotImplementedError
 
 class DependencyRule(ConfigurationRule):
     def __init__(self, product_id: UUID, 

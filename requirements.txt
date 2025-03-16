@@ -7,6 +7,10 @@ blinker==1.9.0
 click==8.1.8
     # via flask
 flask==3.1.0
+    # via
+    #   marcus-bikeshop (pyproject.toml)
+    #   flask-sqlalchemy
+flask-sqlalchemy==3.1.1
     # via marcus-bikeshop (pyproject.toml)
 iniconfig==2.0.0
     # via pytest
@@ -28,10 +32,10 @@ pydantic-core==2.27.0
     # via pydantic
 pytest==8.3.5
     # via marcus-bikeshop (pyproject.toml)
-setuptools==61.0.0
-    # via marcus-bikeshop (pyproject.toml)
-sqlalchemy==2.0.0
-    # via marcus-bikeshop (pyproject.toml)
+sqlalchemy==2.0.39
+    # via
+    #   marcus-bikeshop (pyproject.toml)
+    #   flask-sqlalchemy
 typing-extensions==4.12.2
     # via
     #   pydantic

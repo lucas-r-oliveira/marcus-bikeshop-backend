@@ -42,7 +42,6 @@ class ConfigurationRuleService:
         rules = self.rule_repository.get_rules_for_product(product_id)
         
         for rule in rules:
-            # FIXME:
             if not rule.validate(configuration):
                 return False, rule.error_message
         

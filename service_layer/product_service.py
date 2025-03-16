@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from uuid import UUID
-from product.domain.model import Product, ProductPart
 
-from product.repositories import AbstractProductRepository
-# Products
+from product.domain.model import Product, ProductPart
+from product.repository import AbstractProductRepository
+
+from config_rules.repository import AbstractConfigRulesRepository
 
 @dataclass
 class PartOption:
