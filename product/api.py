@@ -26,7 +26,7 @@ class ProductResponse(BaseModel):
     currency: str
     image_url: str
     category: str
-    # parts: list[ProductPartAPI]
+    parts: list[ProductPartResponse]
     # parts
     # type
 

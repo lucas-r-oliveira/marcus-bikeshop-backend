@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from product.domain.model import PartOption, Product
+from product.domain.model import PartOption, Product, ProductPart
 from sqlalchemy import text
 
 class AbstractProductRepository(ABC):
@@ -8,7 +8,7 @@ class AbstractProductRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get(self, reference) -> Product | None:
+    def get(self, product_id) -> Product | None:
         raise NotImplementedError
 
     @abstractmethod
@@ -17,6 +17,14 @@ class AbstractProductRepository(ABC):
 
     @abstractmethod
     def get_part_options(self, ids) -> list[PartOption]: 
+        raise NotImplementedError
+
+    @abstractmethod
+    def create_part(self, part: ProductPart): 
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_part(self, part_id) -> ProductPart | None:
         raise NotImplementedError
 
 
@@ -30,12 +38,22 @@ class SQLAlchemyProductRepository(AbstractProductRepository):
         self.session.commit()
 
 
-    def get(self, reference) -> Product | None:
-        return self.session.query(Product).filter_by(reference=reference).one_or_none()
+    def get(self, product_id) -> Product | None:
+        return self.session.query(Product).filter_by(id=product_id).one_or_none()
 
     def get_all(self):
         return self.session.query(Product).all() or []
 
+    def create_part(self, part):
+        self.session.add(part)
+        self.session.commit()
+
+    def get_part(self, part_id) -> ProductPart | None:
+        self.session.query(ProductPart).filter_by(id=part_id).one_or_none()
+         
+
+
+    # TODO abstract method
     def get_part_options(self, ids) -> list[PartOption]:
         table_name = "part_options"
         query = text(f"SELECT * FROM {table_name} WHERE id IN :ids")

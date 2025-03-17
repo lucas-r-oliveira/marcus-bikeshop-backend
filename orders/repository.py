@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
-
 from orders.domain.model import Cart, CartItem
+
+from sqlalchemy import text
 
 class AbstractCartRepository(ABC):
     @abstractmethod
@@ -16,7 +17,7 @@ class AbstractCartRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def list(self) -> list[Cart]:
+    def get_all(self) -> list[Cart]:
         raise NotImplementedError
 
 
@@ -26,16 +27,16 @@ class SQLAlchemyCartRepository(AbstractCartRepository):
         self.session = session
 
     def create_or_update(self, cart: Cart) -> Cart:
-        # TODO:
-        pass
+        return self.session.merge(cart)
 
     def get(self, cart_id) -> Cart | None:
         return self.session.query(Cart).filter_by(id=cart_id).one_or_none()
 
     def get_cart_item(self, cart_id, cart_item_id) -> CartItem | None:
-        # TODO: 
-        # return self.session.query(Cart).filter_by(reference=cart_id).one_or_none()
-        pass
+        table_name = "cart_items"
+        query = text(f"SELECT * FROM {table_name} WHERE cart_id = :cart_id and id = :id")
 
-    def list(self):
+        return self.session.execute(query, {"cart_id": cart_id, "id": cart_item_id}).fetchall()
+
+    def get_all(self):
         return self.session.query(Cart).all() or []

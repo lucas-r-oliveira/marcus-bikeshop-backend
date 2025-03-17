@@ -1,3 +1,4 @@
+from typing import TypedDict
 from uuid import UUID
 
 from common import PartConfiguration
@@ -18,6 +19,10 @@ from config_rules.repository import AbstractConfigRulesRepository
 #     id: UUID
 #     name: str 
 #     options: list[PartOption]
+
+class PartOptionDict(TypedDict):
+    name: str
+    in_stock: bool
 
 class ProductService:
     product_repo: AbstractProductRepository
@@ -55,6 +60,23 @@ class ProductService:
 
     def list_products(self) -> list[Product]:
         return self.product_repo.get_all()
+
+    def create_part(self, name: str, options: list[PartOptionDict]) -> ProductPart:
+        if len(options) == 0:
+            raise ValueError(f"Error when trying to create part <{name=}> To create a product part you need to provide at least one option.")
+
+        part_options = [] #set()
+        part_options.extend([PartOption(name=opt.get("name"), in_stock=opt.get("in_stock", True)) for opt in options])
+        
+        part = ProductPart(name, part_options)
+        # TODO: part should come from the add/create operation, otherwise we can be working
+        # with an object thats in memory but not in db (if something fails)
+        self.product_repo.create_part(part)
+
+        return part
+
+    def get_part(self, part_id: UUID) -> ProductPart | None:
+        return self.product_repo.get_part(part_id)
 
     # TODO
     def mark_product_part_as_out_of_stock(self):
