@@ -1,5 +1,10 @@
 from dataclasses import dataclass
-from sqlalchemy import DECIMAL, TypeDecorator
+from uuid import UUID
+from sqlalchemy import DECIMAL, MetaData, TypeDecorator
+
+metadata = MetaData()
+
+type PartConfiguration = dict[UUID, UUID]
 
 @dataclass(frozen=True)
 class Money:

@@ -3,7 +3,6 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
-    MetaData,
     String,
     Table,
 )
@@ -11,11 +10,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import UUID
 
-from common import MoneyType
+from common import MoneyType, metadata
 from product.domain import model
-
-
-metadata = MetaData()
 
 
 part_option = Table(

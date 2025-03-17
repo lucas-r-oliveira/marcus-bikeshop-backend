@@ -2,7 +2,6 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
-    MetaData,
     Table,
 )
 
@@ -12,8 +11,7 @@ from sqlalchemy.sql.sqltypes import UUID
 from common import MoneyType
 from orders.domain import model
 
-
-metadata = MetaData()
+from common import metadata
 
 
 cart_item = Table(
@@ -22,10 +20,7 @@ cart_item = Table(
     Column("id", UUID, primary_key=True),
     Column("product_id", UUID, ForeignKey("products.id")),
     Column("cart_id", UUID, ForeignKey("carts.id")),
-
-    # TODO:
-    # Column("part_config_id", Integer, ) 
-    # I supposed products generates an association table, but I need it to connect
+    Column("part_option_id", Integer, ForeignKey("part_options.id")) ,
     Column("unit_price", MoneyType),
     Column("qty", Integer, default=1)
 

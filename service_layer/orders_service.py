@@ -21,16 +21,22 @@ class OrdersService:
         self.config_rules_service = config_rules_service
         self.product_repo = product_repo
 
-    # hard requirement:  **The user shouldn’t be able to add to cart with a forbidden combination of options or out of stock parts.**
-    #TODO: user_id. handle it somehow
-    def add_to_cart(self, product_id: UUID, cart_id: UUID, configurations: list[dict[UUID, UUID]]) -> Cart: #user_id: UUID) -> Cart:
-        # assume we get a customer/user_id
+    def get_cart(self, cart_id: UUID):
+        # to simplify Im going to assume cart_id is created in the frontend, stored and sent to the backend
+        cart = self.cart_repo.get(cart_id)
+        if not cart:
+            cart = Cart(id=cart_id)
+            self.cart_repo.create_or_update(cart)
 
+        return cart
+
+    # hard requirement:  **The user shouldn’t be able to add to cart with a forbidden combination of options or out of stock parts.**
+    def add_to_cart(self, product_id: UUID, cart_id: UUID, configurations: list[dict[UUID, UUID]]) -> Cart: 
         # get their cart - to simplify Im going to assume cart_id is created in the frontend, stored and sent to the backend
         cart = self.cart_repo.get(cart_id)
         if not cart:
-            cart = Cart()
-            self.cart_repo.add(cart)
+            cart = Cart(id=cart_id)
+            self.cart_repo.create_or_update(cart)
         
         # TODO: validate out of stock parts
         success, err_msg = self.config_rules_service.validate_configurations(product_id=product_id, configurations=configurations)
@@ -55,15 +61,15 @@ class OrdersService:
     def remove_from_cart(self, cart_id: UUID, cart_item_id: UUID) -> Cart:
         cart = self.cart_repo.get(cart_id)
         if not cart:
-            cart = Cart()
+            cart = Cart(id=cart_id)
         cart.remove_item(cart_item_id)
 
-        return self.cart_repo.create_or_update(cart_id, cart_item_id)
+        return self.cart_repo.create_or_update(cart)
 
     def update_cart_item_qty(self, cart_id: UUID, cart_item_id: UUID, qty: int) -> Cart:
-        cart: Cart = self.cart_repo.get(cart_id)
+        cart: Cart | None = self.cart_repo.get(cart_id)
         if not cart:
-            cart = Cart()
+            cart = Cart(id=cart_id)
             # log(f"Cart <{cart_id=}> was not found. Not enough information to proceed")
             return self.cart_repo.create_or_update(cart)
 
@@ -71,9 +77,9 @@ class OrdersService:
         return self.cart_repo.create_or_update(cart)
 
     def clear_cart(self, cart_id: UUID):
-        cart: Cart = self.cart_repo.get(cart_id)
+        cart: Cart | None = self.cart_repo.get(cart_id)
         if not cart:
-            cart = Cart()
+            cart = Cart(id=cart_id)
             return self.cart_repo.create_or_update(cart)
 
         cart.clear()

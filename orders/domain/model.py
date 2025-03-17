@@ -1,5 +1,5 @@
 from uuid import UUID
-from common import Money
+from common import Money, PartConfiguration
 
 
 
@@ -7,7 +7,7 @@ from common import Money
 class CartItem:
     id: UUID # TODO: review: this is currently being generated in the frontend
     product_id: UUID
-    part_configs: set[dict[UUID, UUID]] # set[{part_id: option_id}] 
+    part_configs: set[PartConfiguration] # set[{part_id: option_id}]  #TODO: review set vs list?
     unit_price: Money
     qty: int = 1
 
@@ -15,7 +15,7 @@ class CartItem:
     # if we follow exactly what we have in the frontend, 
     # then we need to pass in a cart item id here
     # TODO: review should it be created here?
-    def __init__(self, id: UUID, product_id: UUID, unit_price: Money, part_configs: set[dict], qty: int = 1):
+    def __init__(self, id: UUID, product_id: UUID, unit_price: Money, part_configs: set[PartConfiguration], qty: int = 1):
         self.id = id
         self.product_id = product_id
         self.unit_price = unit_price
@@ -31,8 +31,11 @@ class Cart:
     user_id: UUID | None = None
     items: list[CartItem] = []
 
-    # TODO: id 
-    def __init__(self, items: list[CartItem] = []):
+    # If we assume the cart_id always comes from the frontend,
+    # then it necessarily have to receive an id here.
+    # it cant be None
+    def __init__(self, id: UUID,  items: list[CartItem] = []):
+        self.id = id
         self.items = items
 
 
