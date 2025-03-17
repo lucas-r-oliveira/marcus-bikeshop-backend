@@ -1,25 +1,25 @@
-from flask import Blueprint, g 
-from flask_pydantic_api.api_wrapper import pydantic_api
-
+from uuid import UUID
 from product.repository import SQLAlchemyProductRepository
 from service_layer.product_service import ProductService
+from common import Money, PartConfiguration
+
+from flask import Blueprint, g 
+from flask_pydantic_api.api_wrapper import pydantic_api
+from pydantic import BaseModel, field_serializer
 
 
-from pydantic import BaseModel
-
-
-class PartOptionAPI(BaseModel):
-    id: str
+class PartOptionResponse(BaseModel):
+    id: UUID
     name: str
     in_stock: bool
 
-class ProductPartAPI(BaseModel):
-    id: str
+class ProductPartResponse(BaseModel):
+    id: UUID
     name: str
-    options: list[PartOptionAPI]
+    options: list[PartOptionResponse]
 
 class ProductResponse(BaseModel):
-    id: str
+    id: UUID
     name: str
     description: str
     base_price: float
@@ -30,6 +30,14 @@ class ProductResponse(BaseModel):
     # parts
     # type
 
+    @field_serializer("base_price")
+    def serialize_base_price(self, base_price: Money):
+        return base_price.amount
+
+    @field_serializer("currency")
+    def serialize_currency(self, currency: Money):
+        return currency.amount
+
 class CreateProductRequest(BaseModel):
     name: str
     description: str
@@ -37,7 +45,7 @@ class CreateProductRequest(BaseModel):
     currency: str
     image_url: str
     category: str
-    parts: list[dict[str, str]]
+    parts: list[PartConfiguration]
     # type
 
 
@@ -64,16 +72,16 @@ def create_product_bp(session_factory):
         tags=["products", "bicycles"],
         success_status_code=200,
     )
-    def get_bicycle_products() -> list[dict]:#list[ProductResponse]: #FIXME:
+    def get_all_bicycle_products() -> list[dict]:#list[ProductResponse]: #FIXME:
         service = get_service()
 
         return [
             ProductResponse(
-                id=str(product.id), 
+                id=product.id, 
                 name=product.name, 
                 description=product.description, 
-                base_price=product.base_price.amount,
-                currency=product.base_price.currency,
+                base_price=product.base_price, #type: ignore
+                currency=product.base_price, #type: ignore
                 image_url=product.image_url,
                 # parts=product.parts,
                 category=product.category
@@ -101,11 +109,11 @@ def create_product_bp(session_factory):
         )
 
         return ProductResponse(
-            id=str(product.id), 
+            id=product.id, 
             name=product.name, 
             description=product.description, 
-            base_price=product.base_price.amount,
-            currency=product.base_price.currency,
+            base_price=product.base_price, #type: ignore
+            currency=product.base_price, #type: ignore
             image_url=product.image_url,
             # parts=product.parts,
             category=product.category

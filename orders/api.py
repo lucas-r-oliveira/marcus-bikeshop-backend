@@ -1,16 +1,15 @@
 from uuid import UUID
-from flask import Blueprint, g 
-from flask_pydantic_api.api_wrapper import pydantic_api
-from sqlalchemy import except_
 
 from common import Money, PartConfiguration
 from config_rules.repository import SQLAlchemyConfigRulesRepository
 from orders.repository import SQLAlchemyCartRepository
 from product.repository import SQLAlchemyProductRepository
 from service_layer.config_rules_service import ConfigurationRuleService
+from service_layer.product_service import ProductService
 from service_layer.orders_service import OrdersService
 
-
+from flask import Blueprint, g 
+from flask_pydantic_api.api_wrapper import pydantic_api
 from pydantic import BaseModel, field_serializer
 
 
@@ -64,7 +63,8 @@ def create_orders_bp(session_factory):
         rule_repo = SQLAlchemyConfigRulesRepository(g.db_session)
 
         config_rules_service = ConfigurationRuleService(rule_repo)
-        return OrdersService(cart_repo, product_repo, config_rules_service)
+        product_service = ProductService(product_repo)
+        return OrdersService(cart_repo, config_rules_service, product_service)
 
     #---- ADD YOUR ROUTES HERE ------------------
 

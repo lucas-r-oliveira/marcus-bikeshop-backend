@@ -3,26 +3,30 @@ from uuid import UUID
 from orders.domain.model import Cart, CartItem
 from orders.repository import AbstractCartRepository
 from product.repository import AbstractProductRepository
+from service_layer.product_service import ProductService
 from service_layer.config_rules_service import ConfigurationRuleService
+
+from common import PartConfiguration
 
 class OrdersService:
     cart_repo: AbstractCartRepository
-    product_repo: AbstractProductRepository
     config_rules_service: ConfigurationRuleService
+    product_service: ProductService
+
+    # to simplify Im going to assume cart_id is created in the frontend, stored and sent to the backend
 
     def __init__(
             self, 
             cart_repo: AbstractCartRepository, 
-            product_repo: AbstractProductRepository,
-            config_rules_service: ConfigurationRuleService
+            config_rules_service: ConfigurationRuleService,
+            product_service: ProductService
 
         ):
         self.cart_repo = cart_repo
         self.config_rules_service = config_rules_service
-        self.product_repo = product_repo
+        self.product_service = product_service
 
     def get_cart(self, cart_id: UUID):
-        # to simplify Im going to assume cart_id is created in the frontend, stored and sent to the backend
         cart = self.cart_repo.get(cart_id)
         if not cart:
             cart = Cart(id=cart_id)
@@ -31,28 +35,28 @@ class OrdersService:
         return cart
 
     # hard requirement:  **The user shouldn’t be able to add to cart with a forbidden combination of options or out of stock parts.**
-    def add_to_cart(self, product_id: UUID, cart_id: UUID, configurations: list[dict[UUID, UUID]]) -> Cart: 
-        # get their cart - to simplify Im going to assume cart_id is created in the frontend, stored and sent to the backend
+    def add_to_cart(self, product_id: UUID, cart_id: UUID, configurations: list[PartConfiguration]) -> Cart: 
         cart = self.cart_repo.get(cart_id)
         if not cart:
             cart = Cart(id=cart_id)
             self.cart_repo.create_or_update(cart)
         
-        # TODO: validate out of stock parts
+        valid = self.product_service.validate_all_configs_are_in_stock(configurations) # validates from a stock pov
+        if not valid:
+            raise ValueError("At least one part option is out of stock.")
+
         success, err_msg = self.config_rules_service.validate_configurations(product_id=product_id, configurations=configurations)
         if not success:
             raise ValueError(err_msg)
 
-        # create cart item
-        product = self.product_repo.get(product_id)
+        product = self.product_service.get_product(product_id)
         if not product:
-            raise ValueError(f"Product <{product_id=}> was not found")
+            raise ValueError(f"Product <{product_id=}> was not found.")
 
         # FIXME: id
         cart_item = CartItem(id='', product_id=product_id, unit_price=product.base_price, part_configs=set(configurations))
 
 
-        # add to cart
         cart.add_item(cart_item)
         cart = self.cart_repo.create_or_update(cart)
 
