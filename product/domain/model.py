@@ -1,7 +1,9 @@
 from typing import Literal
 from uuid import uuid4, UUID
 
-from common import Money
+from common import Money, PartConfiguration
+
+type PartConfiguration = dict[UUID, list[PartOption]]
 
 class PartOption:
     id: UUID
@@ -57,6 +59,14 @@ class Product:
     category: str 
     type: ProductType = "Bicycle" 
     parts: list[ProductPart] = []
+
+
+    # available_part_configs = list[PartConfiguration]
+    # available_part_configs = list[PartConfiguration] # TODO: this type is wrong here, bc we need {part id : [option_ids]}
+    # actually no... its going to be {part_id: [<PartOption id=1>, ...]} # at least for the frontend
+
+    # TODO orm
+    available_part_configs = dict[UUID, list[PartOption]] # FIXME type
 
     def __init__(
             self, 

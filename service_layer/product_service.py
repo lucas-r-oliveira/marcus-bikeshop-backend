@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 from uuid import UUID
 
 from common import PartConfiguration
@@ -7,20 +7,8 @@ from product.repository import AbstractProductRepository
 
 from config_rules.repository import AbstractConfigRulesRepository
 
-# @dataclass
-# class PartOption:
-#     id: UUID
-#     name: str
-#     description: str | None = None
-#     in_stock: bool = True
-
-# @dataclass
-# class Part:
-#     id: UUID
-#     name: str 
-#     options: list[PartOption]
-
 class PartOptionDict(TypedDict):
+    id: NotRequired[UUID]
     name: str
     in_stock: bool
 
@@ -78,13 +66,49 @@ class ProductService:
     def get_part(self, part_id: UUID) -> ProductPart | None:
         return self.product_repo.get_part(part_id)
 
-    # TODO
-    def mark_product_part_as_out_of_stock(self):
-        pass
 
-    # TODO
-    def mark_product_part_as_in_stock(self):
-        pass
+    def set_available_part_configs(self, product_id: UUID, configs: dict[UUID, list[UUID]]) -> Product: 
+        product = self.get_product(product_id)
+        if not product:
+            raise ValueError(f"Product id={product_id} was not found.")
+
+        
+        # I have two options here (and across the rest of the service)
+        # 1. do it directly in the repo and return prroduct
+        # 2. do it in the domain object and call repo.update(product) or something similar
+        # update product in db # TODO:
+        product = self.product_repo.set_available_part_configs(product_id=product.id, configs)
+
+        return product
+
+
+
+    def mark_part_option_as_out_of_stock(self, option_id: UUID):
+        part_options: list[PartOption] = self.product_repo.get_part_options(ids=[option_id])
+        if not part_options:
+            raise ValueError(f"Part Option id={option_id} was not found.")
+
+        part_option = part_options[0]
+        # see, here we're doing the opposite approach from below
+        # its not consistent
+        # TODO: review workflow
+
+        part_option.mark_as_out_of_stock()
+        self.product_repo.update_part_option(part_option)
+
+
+    def mark_part_option_as_in_stock(self, option_id: UUID):
+        part_options: list[PartOption] = self.product_repo.get_part_options(ids=[option_id])
+        if not part_options:
+            raise ValueError(f"Part Option id={option_id} was not found.")
+
+        part_option = part_options[0]
+        # see, here we're doing the opposite approach from below
+        # its not consistent
+        # TODO: review workflow
+
+        part_option.mark_as_in_stock()
+        self.product_repo.update_part_option(part_option)
 
     def validate_all_configs_are_in_stock(self, configurations: list[PartConfiguration]) -> bool:
         part_options_ids: list[UUID] = [v for config in configurations for v in config.values()]
@@ -93,11 +117,19 @@ class ProductService:
 
         return all(part_opt.in_stock for part_opt in part_options)
 
-    #def add_part_option(self, product_id: UUID, product_part_id: UUID, option_name: str, option_in_stock: bool):
-    #    product = self.product_repo.get(product_id) #TODO: review, this will probably not work
-    #    if not product:
-    #        raise ValueError(f"Product id={product_id} was not found")
+    # is there any actual difference between these two?
+    def create_part_option(self):
+        pass
 
-    #    part_option = PartOption(name=option_name, in_stock=option_in_stock)
+    def add_part_option(self, product_id: UUID, product_part_id: UUID, option_name: str, option_in_stock: bool):
+        # lets assume here the option already exists and we're just linking iot
+        product = self.product_repo.get(product_id)
+        if not product:
+            raise ValueError(f"Product id={product_id} was not found")
 
-    #    product.add_product_part_option()
+        # part_option = PartOption(name=option_name, in_stock=option_in_stock)
+
+        # it can either
+        # I would guess this one just adds an existing option, hence requiring the option_id also
+
+        # product.add_product_part_option()
