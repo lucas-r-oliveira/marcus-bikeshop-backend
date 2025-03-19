@@ -40,3 +40,25 @@ class SQLAlchemyCartRepository(AbstractCartRepository):
 
     def get_all(self):
         return self.session.query(Cart).all() or []
+
+class InMemoryCartRepository(AbstractCartRepository):
+    def __init__(self, cart=Cart(), cart_items=[]):
+
+        self._cart = cart
+        self._cart_items = set(cart_items)
+
+    def create_or_update(self, cart):
+        self._cart = cart
+        return self._cart
+        
+
+    def get(self, cart_id):
+        return self._cart
+
+    def get_cart_item(self, cart_id, cart_item_id): 
+        for item in self._cart_items:
+            if item.id == cart_item_id:
+                return item
+
+    def get_all(self) -> list[Cart]:
+        return [self._cart]

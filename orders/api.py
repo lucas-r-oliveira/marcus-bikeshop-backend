@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from common import Money, PartConfiguration
+from common import Money, PartOptionSelection
 from config_rules.repository import SQLAlchemyConfigRulesRepository
 from orders.repository import SQLAlchemyCartRepository
 from product.repository import SQLAlchemyProductRepository
@@ -15,7 +15,7 @@ from pydantic import BaseModel, field_serializer
 
 class AddToCartRequest(BaseModel):
     product_id: UUID
-    configurations: list[PartConfiguration]
+    selections: list[PartOptionSelection]
     # TODO: review nothing else?
 
     # @field_serializer('configurations')
@@ -31,7 +31,7 @@ class UpdateCartItemQtyRequest(BaseModel):
 class CartItemResponse(BaseModel):
     id: UUID
     product_id: UUID
-    part_configs: set[PartConfiguration]
+    selections: set[PartOptionSelection]
 
     unit_price: float
     qty: int
@@ -83,7 +83,7 @@ def create_orders_bp(session_factory):
             CartItemResponse(
                 id=item.id,
                 product_id=item.product_id,
-                part_configs=item.part_configs,
+                selections=item.part_selections,
                 unit_price=item.unit_price, #type: ignore
                 qty=item.qty
             ) for item in cart.items
@@ -104,14 +104,14 @@ def create_orders_bp(session_factory):
         cart = service.add_to_cart(
             product_id=body.product_id,
             cart_id=cart_id,
-            configurations=body.configurations 
+            selections=body.selections 
         )
         
         cart_items = [
             CartItemResponse(
                 id=item.id, 
                 product_id=item.product_id, 
-                part_configs=item.part_configs,
+                selections=item.part_selections,
                 unit_price=item.unit_price,  #type: ignore
                 qty=item.qty
             ) for item in cart.items
@@ -133,7 +133,7 @@ def create_orders_bp(session_factory):
             CartItemResponse(
                 id=item.id, 
                 product_id=item.product_id,
-                part_configs=item.part_configs,
+                selections=item.part_selections,
                 unit_price=item.unit_price, #type: ignore
                 qty=item.qty
             ) for item in cart.items
@@ -155,7 +155,7 @@ def create_orders_bp(session_factory):
             CartItemResponse(
                 id=item.id, 
                 product_id=item.product_id,
-                part_configs=item.part_configs,
+                selections=item.part_selections,
                 unit_price=item.unit_price, # type: ignore
                 qty=item.qty
             ) for item in cart.items

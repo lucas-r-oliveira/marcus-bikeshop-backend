@@ -7,14 +7,23 @@ class AbstractConfigRulesRepository(ABC):
     # def add(self, rule: ConfigurationRule) -> ConfigurationRule:
     #     raise NotImplementedError
 
+    # @abstractmethod
+    # def getrules_for_product(self, product_id: UUID) -> list[ConfigurationRule]:
+    #     raise NotImplementedError
+    
     @abstractmethod
-    def get_rules_for_product(self, product_id: UUID) -> list[ConfigurationRule]:
+    def get(self, rule_id: UUID) -> ConfigurationRule | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_all(self) -> list[ConfigurationRule]:
         raise NotImplementedError
 
     # @abstractmethod
     # def delete(self, rule_id: UUID) -> bool:
     #     raise NotImplementedError
 
+# FIXME:
 class SQLAlchemyConfigRulesRepository(AbstractConfigRulesRepository):
     def __init__(self, session):
         self.session = session
@@ -30,3 +39,16 @@ class SQLAlchemyConfigRulesRepository(AbstractConfigRulesRepository):
     # not in scope
     # def delete(self, rule_id: UUID) -> bool:
     #     return True
+
+class InMemoryConfigRulesRepository(AbstractConfigRulesRepository):
+    def __init__(self, config_rules = set()):
+        self.config_rules = config_rules
+
+    def get(self, rule_id):
+        for rule in self.config_rules:
+            if rule.id == rule_id:
+                return rule
+        return None
+
+    def get_all(self):
+        return self.config_rules

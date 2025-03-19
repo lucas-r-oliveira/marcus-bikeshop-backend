@@ -86,7 +86,7 @@ def start_mappers(mapper_registry):
     )
 
     mapper_registry.map_imperatively(
-        model.PartsConfiguration,
+        model.PartConfiguration,
         part_configuration,
         properties={
             "id": part_configuration.c.id,
@@ -111,6 +111,6 @@ def start_mappers(mapper_registry):
             "image_url": product.c.image_url,
             "category": product.c.category,
             "parts": relationship(model.ProductPart, backref="product"),
-            "part_configurations": relationship(model.PartsConfiguration)
+            "part_configurations": relationship(model.PartConfiguration)
         }
     )

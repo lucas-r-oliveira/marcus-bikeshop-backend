@@ -1,25 +1,19 @@
-from uuid import UUID
-from common import Money, PartConfiguration
-
-
-
+from uuid import UUID, uuid4
+from common import Money, PartOptionSelection
 
 class CartItem:
-    id: UUID # TODO: review: this is currently being generated in the frontend
+    id: UUID 
     product_id: UUID
-    part_configs: set[PartConfiguration] # set[{part_id: option_id}]  #TODO: review set vs list?
+    part_selections: PartOptionSelection
     unit_price: Money
     qty: int = 1
 
 
-    # if we follow exactly what we have in the frontend, 
-    # then we need to pass in a cart item id here
-    # TODO: review should it be created here?
-    def __init__(self, id: UUID, product_id: UUID, unit_price: Money, part_configs: set[PartConfiguration], qty: int = 1):
-        self.id = id
+    def __init__(self, product_id: UUID, unit_price: Money, part_selections: PartOptionSelection, qty: int = 1):
+        self.id = uuid4()
         self.product_id = product_id
         self.unit_price = unit_price
-        self.part_configs = part_configs
+        self.part_selections = part_selections
         self.qty = qty
 
     @property
@@ -28,21 +22,17 @@ class CartItem:
 
 class Cart:
     id: UUID
-    user_id: UUID | None = None
     items: list[CartItem] = []
 
-    # If we assume the cart_id always comes from the frontend,
-    # then it necessarily have to receive an id here.
-    # it cant be None
-    def __init__(self, id: UUID,  items: list[CartItem] = []):
-        self.id = id
+    def __init__(self, items: list[CartItem] = []):
+        self.id = uuid4()
         self.items = items
 
 
     def add_item(self, item: CartItem):
         for existing_item in self.items:
             if (existing_item.product_id == item.product_id and
-                    existing_item.part_configs == item.part_configs):
+                    existing_item.part_selections == item.part_selections):
                 existing_item.qty += item.qty
                 return
         

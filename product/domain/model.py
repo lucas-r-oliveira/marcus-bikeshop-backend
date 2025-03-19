@@ -45,11 +45,21 @@ class ProductPart:
         return [opt for opt in self.options if opt.in_stock]
 
    
-class PartsConfiguration:
+class PartConfiguration:
     id: UUID
-    product_id: UUID
+    # product_id: UUID
     part_id: UUID
     available_options: list[PartOption]
+
+    def __init__(self, 
+                 # product_id: UUID, 
+                 part_id: UUID, 
+                 available_options):
+        self.id = uuid4()
+        self.part_id = part_id
+        # self.product_id = product_id
+        self.available_options = available_options
+        # assert len(self.available_options) >= 1
 
 type ProductType = Literal["Bicycle"]
 
@@ -62,7 +72,7 @@ class Product:
     category: str 
     type: ProductType = "Bicycle" 
     parts: list[ProductPart] = []
-    part_configs: PartsConfiguration
+    part_configs: list[PartConfiguration] = []
 
     def __init__(
             self, 
@@ -71,7 +81,7 @@ class Product:
             base_price: Money | float,
             image_url: str,
             category: str,
-            part_configs: PartsConfiguration,
+            part_configs: list[PartConfiguration] = [],
             type: ProductType = "Bicycle",
             parts: list[ProductPart] = [],
             

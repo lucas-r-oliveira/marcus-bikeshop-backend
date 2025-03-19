@@ -1,73 +1,11 @@
 import pytest
 from uuid import UUID
 from service_layer.product_service import ProductService
-from product.repository import AbstractProductRepository
-from product.domain.model import ProductPart, Product
 
-class InMemoryProductRepository(AbstractProductRepository):
-    def __init__(self, part_options, product_parts, products):
-        # TODO: review - do we actually need to pass in part options here? I feel like 
-        # we 're doing redundant work
 
-        # we can just extend from product_parts
-        self._part_options = set(part_options)
-        self._products_parts = set(product_parts)
-        self._products = set(products)
-
-    def add(self, product):
-        self._products.add(product)
-
-    def get(self, product_id):
-        return next(p for p in self._products if p.id == product_id)
-
-    def get_all(self): 
-        return list(self._products)
-
-    def get_part_options(self, ids): 
-        return list(filter(lambda opt: opt.id in ids, self._part_options))
-
-    def create_part(self, part: ProductPart):
-        self._products_parts.add(part)
-        self._part_options.update(part.options)
-
-    def get_part(self, part_id):
-        for p in self._products_parts:
-            if p.id == part_id:
-                return p
-        
-
-def make_product_parts():
-    wheel_part = ProductPart(name="Wheels")
-    wheel_part.add_option("Road wheels", True)
-    wheel_part.add_option("Mountain wheels", True)
-    wheel_part.add_option("Fat Bike wheels", False)
-
-    frame_part = ProductPart(name="Frame")
-    frame_part.add_option("Aluminium", True)
-    frame_part.add_option("Carbon", False)
-
-    part_options = []
-    for part in [wheel_part, frame_part]:
-        part_options.extend(part.options)
-
-    return [wheel_part, frame_part], part_options
-
-def make_product():
-    parts, _ = make_product_parts()
-    product = Product(
-        name="Mountain Bike",
-        description="A sturdy mountain bike",
-        base_price=599.99,
-        image_url="https://example.com/bike.jpg",
-        category="Mountain Bikes",
-        # TODO: review parts - we shouldnt necessarily pass domain models here... maybe PartConfigurations or option ids
-        parts=parts,
-    )
-    return product
-        
-def test_create_product():
-    parts, options = make_product_parts()
-    repo = InMemoryProductRepository(options, parts, [])
+def test_create_product(product_parts, in_memory_product_repo):
+    [parts, options] = product_parts
+    repo = in_memory_product_repo(options, parts, [])
     service = ProductService(repo)
 
     product = service.create_product(
@@ -78,6 +16,7 @@ def test_create_product():
         category="Mountain Bikes",
         # TODO: review parts - we shouldnt necessarily pass domain models here... maybe PartConfigurations or option ids
         parts=parts,
+        # TODO: part_configs
     )
 
     assert product.id is not None and isinstance(product.id, UUID)
@@ -94,25 +33,25 @@ def test_create_product():
     assert len(retrieved_product.parts) == 2
     # len part options?
 
-def test_create_product_part():
+def test_create_product_part(in_memory_product_repo):
     # creating a product part necessarily requires at least one option.
-    # this repeating part can be put in a fixture
-    repo = InMemoryProductRepository([], [], [])
+    # this repeating part should be put in a fixture
+    repo = in_memory_product_repo([], [], [])
     service = ProductService(repo)
 
     part = service.create_part(
         name="Frame",
         options=[
             {
-                "name": "Full-suspension",
+                "name": "Full-Suspension Frame",
                 "in_stock": True,
             },
             {
-                "name": "Diamond",
+                "name": "Diamond Frame",
                 "in_stock": True,
             },
             {
-                "name": "Step-through",
+                "name": "Step-Through Frame",
                 "in_stock": True,
             },
         ]
@@ -161,7 +100,7 @@ def test_create_part_option():
     # What we actually need is a part
     # product = make_product()
     # parts, _ = make_product_parts()
-    # repo = InMemoryProductRepository([], parts, [])
+    # repo = in_memory_product_repo([], parts, [])
     # service = ProductService(repo)
 
 
@@ -173,10 +112,9 @@ def test_create_part_option():
     pass
 
 @pytest.mark.skip
-def test_configure_part_options_per_product():
-    _, options = make_product_parts()
-    product = make_product()
-    repo = InMemoryProductRepository([], [], [product])
+def test_configure_part_options_per_product(product_parts, product, in_memory_product_repo):
+    [_, options] = product_parts
+    repo = in_memory_product_repo([], [], [product])
     service = ProductService(repo)
 
     product = service.set_available_part_configs(product_id=product.id, configs={
@@ -186,7 +124,7 @@ def test_configure_part_options_per_product():
         ]})
 
 
-    assert product.available_part_configs == {
+    assert product.part_configs == {
         product.parts[0].id: [options[0],options[1]]
     }
 
@@ -194,7 +132,7 @@ def test_configure_part_options_per_product():
     retrieved_product = service.get_product(product.id)
     assert retrieved_product is not None
     # assert len(retrieved_product.available_part_configs[product.parts[0].id]) == 2 -> Why is this failing?
-    assert retrieved_product.available_part_configs == {
+    assert retrieved_product.part_configs == {
         product.parts[0].id: [options[0],options[1]]
     }
     
@@ -202,23 +140,22 @@ def test_configure_part_options_per_product():
     # TODO
     # product = service.update_available_part_configs({product.parts[0].id: [product.parts[0].options[2].id]})
 
-    # assert product.available_part_configs == {
+    # assert product.part_configs == {
     #     product.parts[0].id: [options[0], options[1], options[2]]
     # }
 
     # retrieved_product = service.get_product(product.id)
     # assert retrieved_product is not None
     # # assert len(retrieved_product.available_part_configs[product.parts[0].id]) == 3 -> same here
-    # assert retrieved_product.available_part_configs == {
+    # assert retrieved_product.part_configs == {
     #     product.parts[0].id: [options[0], options[1], options[2]]
     # }
     
 
 @pytest.mark.skip
-def test_mark_part_option_as_out_of_stock():
-    product = make_product()
-    parts, options = make_product_parts()
-    repo = InMemoryProductRepository(options, parts, [product])
+def test_mark_part_option_as_out_of_stock(product, product_parts, in_memory_product_repo):
+    [parts, options] = product_parts()
+    repo = in_memory_product_repo(options, parts, [product])
     service = ProductService(repo)
 
     # to test here, making one part option OoS makes it so in all products' (including available_part_configs)

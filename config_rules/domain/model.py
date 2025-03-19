@@ -3,9 +3,8 @@ from uuid import UUID, uuid4
 
 
 class ConfigurationRule(ABC):
-    def __init__(self, product_id: UUID, error_message: str):
+    def __init__(self, error_message: str):
         self.rule_id = uuid4() 
-        self.product_id = product_id
         self.error_message = error_message
 
     #@abstractmethod
@@ -17,11 +16,14 @@ class ConfigurationRule(ABC):
         raise NotImplementedError
 
 class DependencyRule(ConfigurationRule):
-    def __init__(self, product_id: UUID, 
-                 if_part: UUID, if_option: UUID, 
-                 then_part: UUID, then_options: list[UUID], 
+    def __init__(self, #product_id: UUID, 
+                 #if_part: UUID, if_option: UUID, 
+                 if_option: UUID,
+                 # then_part: UUID, then_options: list[UUID], 
+                 then_options: list[UUID], 
                  error_message: str):
-        super().__init__(product_id, error_message)
+        # super().__init__(product_id, error_message)
+        super().__init__(error_message)
         # self.if_part = if_part
         self.if_option = if_option
         # self.then_part = then_part
@@ -42,13 +44,14 @@ class DependencyRule(ConfigurationRule):
         return True
 
 class IncompatibilityRule(ConfigurationRule):
-    def __init__(self, product_id: UUID,
+    def __init__(self, #product_id: UUID,
                  # part1: str, option1: str, 
                  if_option: UUID, #, option1: str, 
                  then_options: list[UUID], # why is then options allowed to have multiple?
                  # part2: str, option2: str, 
                  error_message: str):
-        super().__init__(product_id, error_message)
+        #super().__init__(product_id, error_message)
+        super().__init__( error_message)
         # self.part1 = part1
         # self.option1 = option1
         # self.part2 = part2

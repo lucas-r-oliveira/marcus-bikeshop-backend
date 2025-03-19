@@ -109,8 +109,8 @@ class ProductService:
         part_option.mark_as_in_stock()
         self.product_repo.update_part_option(part_option)
 
-    def validate_all_selections_are_in_stock(self, selections: list[PartOptionSelection]) -> bool:
-        part_options_ids: list[UUID] = [v for config in selections for v in config.values()]
+    def validate_all_selections_are_in_stock(self, selections: PartOptionSelection) -> bool:
+        part_options_ids: list[UUID] = list(selections.values())
             
         part_options: list[PartOption] = self.product_repo.get_part_options(ids=part_options_ids)
 

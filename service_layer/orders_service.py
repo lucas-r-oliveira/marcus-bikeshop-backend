@@ -2,18 +2,15 @@ from uuid import UUID
 
 from orders.domain.model import Cart, CartItem
 from orders.repository import AbstractCartRepository
-from product.repository import AbstractProductRepository
 from service_layer.product_service import ProductService
 from service_layer.config_rules_service import ConfigurationRuleService
 
-from common import PartConfiguration
+from common import PartOptionSelection
 
 class OrdersService:
     cart_repo: AbstractCartRepository
     config_rules_service: ConfigurationRuleService
     product_service: ProductService
-
-    # to simplify Im going to assume cart_id is created in the frontend, stored and sent to the backend
 
     def __init__(
             self, 
@@ -29,23 +26,22 @@ class OrdersService:
     def get_cart(self, cart_id: UUID):
         cart = self.cart_repo.get(cart_id)
         if not cart:
-            cart = Cart(id=cart_id)
+            cart = Cart()
             self.cart_repo.create_or_update(cart)
 
         return cart
 
-    # hard requirement:  **The user shouldn’t be able to add to cart with a forbidden combination of options or out of stock parts.**
-    def add_to_cart(self, product_id: UUID, cart_id: UUID, configurations: list[PartConfiguration]) -> Cart: 
+    def add_to_cart(self, product_id: UUID, cart_id: UUID, selections: PartOptionSelection) -> Cart: 
         cart = self.cart_repo.get(cart_id)
         if not cart:
-            cart = Cart(id=cart_id)
+            cart = Cart()
             self.cart_repo.create_or_update(cart)
         
-        valid = self.product_service.validate_all_configs_are_in_stock(configurations) # validates from a stock pov
+        valid = self.product_service.validate_all_selections_are_in_stock(selections) 
         if not valid:
             raise ValueError("At least one part option is out of stock.")
 
-        success, err_msg = self.config_rules_service.validate_configurations(product_id=product_id, configurations=configurations)
+        success, err_msg = self.config_rules_service.validate_selections(selections=selections)
         if not success:
             raise ValueError(err_msg)
 
@@ -53,8 +49,11 @@ class OrdersService:
         if not product:
             raise ValueError(f"Product <{product_id=}> was not found.")
 
-        # FIXME: id
-        cart_item = CartItem(id='', product_id=product_id, unit_price=product.base_price, part_configs=set(configurations))
+        cart_item = CartItem(
+            product_id=product_id, 
+            unit_price=product.base_price, 
+            part_selections=selections
+        )
 
 
         cart.add_item(cart_item)
