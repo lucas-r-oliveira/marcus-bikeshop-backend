@@ -22,11 +22,11 @@ class CartItem:
 
 class Cart:
     id: UUID
-    items: list[CartItem] = []
+    items: list[CartItem]
 
-    def __init__(self, items: list[CartItem] = []):
+    def __init__(self, items: list[CartItem] | None= None):
         self.id = uuid4()
-        self.items = items
+        self.items = items if items is not None else []
 
 
     def add_item(self, item: CartItem):

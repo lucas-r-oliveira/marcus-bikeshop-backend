@@ -22,7 +22,6 @@ class AbstractCartRepository(ABC):
 
 
 class SQLAlchemyCartRepository(AbstractCartRepository):
-    # TODO: review rollbacks
     def __init__(self, session):
         self.session = session
 
@@ -42,10 +41,10 @@ class SQLAlchemyCartRepository(AbstractCartRepository):
         return self.session.query(Cart).all() or []
 
 class InMemoryCartRepository(AbstractCartRepository):
-    def __init__(self, cart=Cart(), cart_items=[]):
+    def __init__(self, cart=None, cart_items=None):
 
-        self._cart = cart
-        self._cart_items = set(cart_items)
+        self._cart = cart if cart is not None else Cart()
+        self._cart_items = set(cart_items if cart_items is not None else [])
 
     def create_or_update(self, cart):
         self._cart = cart

@@ -1,6 +1,7 @@
 import pytest
 from uuid import UUID
 from service_layer.product_service import ProductService
+from common import Money
 
 
 def test_create_product(product_parts, in_memory_product_repo):
@@ -14,7 +15,6 @@ def test_create_product(product_parts, in_memory_product_repo):
         base_price=599.99,
         image_url="https://example.com/bike.jpg",
         category="Mountain Bikes",
-        # TODO: review parts - we shouldnt necessarily pass domain models here... maybe PartConfigurations or option ids
         parts=parts,
         # TODO: part_configs
     )
@@ -22,15 +22,15 @@ def test_create_product(product_parts, in_memory_product_repo):
     assert product.id is not None and isinstance(product.id, UUID)
     assert product.name == "Mountain Bike"
     assert product.description == "A sturdy mountain bike"
-    assert product.base_price.amount == 599.99 # this should be handled with Decimal 
+    assert product.base_price == Money(599.99) 
     assert product.image_url == "https://example.com/bike.jpg"
     assert product.category == "Mountain Bikes"
-    assert len(product.parts) == 2
+    assert len(product.parts) == 3
 
     retrieved_product = service.get_product(product.id)
     assert retrieved_product is not None
     assert retrieved_product.id == product.id
-    assert len(retrieved_product.parts) == 2
+    assert len(retrieved_product.parts) == 3
     # len part options?
 
 def test_create_product_part(in_memory_product_repo):

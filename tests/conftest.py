@@ -15,7 +15,9 @@ def in_memory_rules_repo():
 
 @pytest.fixture()
 def in_memory_cart_repo():
-    return InMemoryCartRepository
+    def _create_repo(*args, **kwargs):
+        return InMemoryCartRepository(*args, **kwargs)
+    return _create_repo
 
 @pytest.fixture
 def product_parts():

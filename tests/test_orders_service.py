@@ -46,6 +46,8 @@ def test_add_to_cart_success(
     [parts, options] = product_parts
 
     repo = in_memory_cart_repo()
+
+
     product_repo = in_memory_product_repo(parts, options, [product])
     product_service = ProductService(product_repo)
 
@@ -54,14 +56,16 @@ def test_add_to_cart_success(
 
     service = OrdersService(repo, config_rules_service , product_service)
 
-    # for the in memory repo we're assuming one cart only (wrongly so)
-    cart = repo.get("")
+    # for the in memory repo we're assuming one cart only for ease of use
+    cart = service.get_cart(uuid4())
+    assert len(cart.items) == 0
+
     options_selection = {
         parts[0].id: parts[0].options[0].id, 
         parts[1].id: parts[1].options[4].id,
         parts[2].id: parts[2].options[6].id
     }
-    cart = service.add_to_cart(product.id, cart.id, options_selection) # TODO options_selection vs configurations
+    cart = service.add_to_cart(product.id, cart.id, options_selection) 
 
     assert len(cart.items) == 1
     assert cart.total_price == Money(599.99)
@@ -74,3 +78,54 @@ def test_add_to_cart_success(
 
 
 # how can adding to the cart fail?
+
+def test_adding_same_item_existing_cart_increases_qty_and_price(
+        in_memory_cart_repo, 
+        in_memory_product_repo,
+        in_memory_rules_repo,
+        product_parts,
+        product,
+        rules
+    ):
+
+    [parts, options] = product_parts
+    
+    repo = in_memory_cart_repo()
+
+    product_repo = in_memory_product_repo(parts, options, [product])
+
+    config_rules_repo = in_memory_rules_repo(rules)
+
+    product_service = ProductService(product_repo)
+    config_rules_service = ConfigurationRuleService(config_rules_repo)
+
+    
+    service = OrdersService(repo, config_rules_service, product_service)
+    
+    cart = service.get_cart(uuid4())
+
+    assert cart.total_price == Money(0)
+    assert len(cart.items) == 0
+    assert cart.total_count ==0
+
+    options_selection = {
+        parts[0].id: parts[0].options[0].id, 
+        parts[1].id: parts[1].options[4].id,
+        parts[2].id: parts[2].options[6].id
+    }
+
+    cart2 = service.add_to_cart(product.id, cart.id, options_selection)
+    
+    assert cart2.id == cart.id
+    assert len(cart2.items) == 1
+    assert cart2.total_count == 1 
+    assert cart2.total_price == Money(599.99)
+
+    cart3 = service.add_to_cart(product.id, cart.id, options_selection)
+    assert cart3.id == cart2.id
+    assert len(cart3.items) == 1
+    assert cart3.total_count == 2
+    assert cart3.total_price == Money(599.99) *2
+
+# TODO: remove from cart
+# TODO: clear cart
