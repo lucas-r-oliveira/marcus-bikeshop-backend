@@ -1,7 +1,7 @@
 from uuid import UUID
 from product.repository import SQLAlchemyProductRepository
 from service_layer.product_service import ProductService
-from common import Money, PartConfiguration
+from common import Money, PartOptionSelection
 
 from flask import Blueprint, g 
 from flask_pydantic_api.api_wrapper import pydantic_api
@@ -27,6 +27,7 @@ class ProductResponse(BaseModel):
     image_url: str
     category: str
     parts: list[ProductPartResponse]
+    # TODO: part configs
     # parts
     # type
 
@@ -45,7 +46,7 @@ class CreateProductRequest(BaseModel):
     currency: str
     image_url: str
     category: str
-    parts: list[PartConfiguration]
+    parts: list[PartConfiguration]  #FIXME:
     # type
 
 
@@ -98,6 +99,7 @@ def create_product_bp(session_factory):
         service = get_service()
 
         # TODO: parts
+        # TODO: part_configs
         # TODO: type
         product = service.create_product(
 

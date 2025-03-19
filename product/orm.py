@@ -36,6 +36,22 @@ product_part = Table(
     Column("product_id", UUID, ForeignKey("products.id")),
 )
 
+part_configuration = Table(
+    "part_configurations",
+    metadata,
+    Column("id", UUID, primary_key=True),
+    Column("product_id", UUID, ForeignKey("products.id")),
+    Column("part_id", UUID, ForeignKey("product_parts.id"))
+)
+
+part_configuration_options = Table(
+    "part_configuration_options",
+    metadata,
+    Column("id", UUID, primary_key=True),
+    Column("configuration_id", UUID, ForeignKey("part_configurations.id")),
+    Column("option_id", UUID, ForeignKey("part_options.id")),
+)
+
 product = Table(
     "products",
     metadata,
@@ -70,6 +86,21 @@ def start_mappers(mapper_registry):
     )
 
     mapper_registry.map_imperatively(
+        model.PartsConfiguration,
+        part_configuration,
+        properties={
+            "id": part_configuration.c.id,
+            "product_id": part_configuration.c.product_id,
+            "part_id": part_configuration.c.part_id,
+            "available_options": relationship(
+                model.PartOption,
+                secondary=part_configuration_options,
+                collection_class=list
+            )
+        }
+    )
+
+    mapper_registry.map_imperatively(
         model.Product,
         product,
         properties={
@@ -80,5 +111,6 @@ def start_mappers(mapper_registry):
             "image_url": product.c.image_url,
             "category": product.c.category,
             "parts": relationship(model.ProductPart, backref="product"),
+            "part_configurations": relationship(model.PartsConfiguration)
         }
     )

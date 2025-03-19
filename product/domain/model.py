@@ -1,9 +1,7 @@
 from typing import Literal
 from uuid import uuid4, UUID
 
-from common import Money, PartConfiguration
-
-type PartConfiguration = dict[UUID, list[PartOption]]
+from common import Money
 
 class PartOption:
     id: UUID
@@ -47,10 +45,15 @@ class ProductPart:
         return [opt for opt in self.options if opt.in_stock]
 
    
+class PartsConfiguration:
+    id: UUID
+    product_id: UUID
+    part_id: UUID
+    available_options: list[PartOption]
+
 type ProductType = Literal["Bicycle"]
 
 class Product:
-    # aggregate or not?
     id: UUID
     name: str
     description: str
@@ -59,14 +62,7 @@ class Product:
     category: str 
     type: ProductType = "Bicycle" 
     parts: list[ProductPart] = []
-
-
-    # available_part_configs = list[PartConfiguration]
-    # available_part_configs = list[PartConfiguration] # TODO: this type is wrong here, bc we need {part id : [option_ids]}
-    # actually no... its going to be {part_id: [<PartOption id=1>, ...]} # at least for the frontend
-
-    # TODO orm
-    available_part_configs = dict[UUID, list[PartOption]] # FIXME type
+    part_configs: PartsConfiguration
 
     def __init__(
             self, 
@@ -75,8 +71,10 @@ class Product:
             base_price: Money | float,
             image_url: str,
             category: str,
+            part_configs: PartsConfiguration,
             type: ProductType = "Bicycle",
-            parts: list[ProductPart] = []
+            parts: list[ProductPart] = [],
+            
         ): 
         self.id = uuid4()
         self.name = name
@@ -89,6 +87,7 @@ class Product:
         self.category = category
         self.type = type
         self.parts = parts
+        self.part_configs = part_configs
 
     def add_product_part(self, product_part: ProductPart):
         self.parts.append(product_part)

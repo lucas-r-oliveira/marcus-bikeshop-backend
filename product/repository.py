@@ -1,3 +1,4 @@
+from uuid import uuid4
 from abc import abstractmethod, ABC
 from product.domain.model import PartOption, Product, ProductPart
 from sqlalchemy import text
@@ -51,9 +52,6 @@ class SQLAlchemyProductRepository(AbstractProductRepository):
     def get_part(self, part_id) -> ProductPart | None:
         self.session.query(ProductPart).filter_by(id=part_id).one_or_none()
          
-
-
-    # TODO abstract method
     def get_part_options(self, ids) -> list[PartOption]:
         table_name = "part_options"
         query = text(f"SELECT * FROM {table_name} WHERE id IN :ids")
@@ -64,3 +62,36 @@ class SQLAlchemyProductRepository(AbstractProductRepository):
     #     # FIXME: db_models
     #     part_model = self.session.query(db_models.ProductPart).filter_by(id=product_part_id, product_id=product_id).first()
     #     return part_model
+
+
+class InMemoryProductRepository(AbstractProductRepository):
+    def __init__(self, part_options, product_parts, products):
+        # TODO: review - do we actually need to pass in part options here? I feel like 
+        # we 're doing redundant work
+
+        # we can just extend from product_parts
+        self._part_options = set(part_options)
+        self._products_parts = set(product_parts)
+        self._products = set(products)
+
+    def add(self, product):
+        self._products.add(product)
+
+    def get(self, product_id):
+        return next(p for p in self._products if p.id == product_id)
+
+    def get_all(self): 
+        return list(self._products)
+
+    def get_part_options(self, ids): 
+        return list(filter(lambda opt: opt.id in ids, self._part_options))
+
+    def create_part(self, part: ProductPart):
+        self._products_parts.add(part)
+        self._part_options.update(part.options)
+
+    def get_part(self, part_id):
+        for p in self._products_parts:
+            if p.id == part_id:
+                return p
+        
