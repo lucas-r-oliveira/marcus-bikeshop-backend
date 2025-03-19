@@ -1,7 +1,7 @@
 from typing import NotRequired, TypedDict
 from uuid import UUID
 
-from common import PartConfiguration
+from common import PartOptionSelection
 from product.domain.model import Product, ProductPart, PartOption
 from product.repository import AbstractProductRepository
 
@@ -77,10 +77,9 @@ class ProductService:
         # 1. do it directly in the repo and return prroduct
         # 2. do it in the domain object and call repo.update(product) or something similar
         # update product in db # TODO:
-        product = self.product_repo.set_available_part_configs(product_id=product.id, configs)
+        product = self.product_repo.set_available_part_configs(product.id, configs)
 
         return product
-
 
 
     def mark_part_option_as_out_of_stock(self, option_id: UUID):
@@ -110,8 +109,8 @@ class ProductService:
         part_option.mark_as_in_stock()
         self.product_repo.update_part_option(part_option)
 
-    def validate_all_configs_are_in_stock(self, configurations: list[PartConfiguration]) -> bool:
-        part_options_ids: list[UUID] = [v for config in configurations for v in config.values()]
+    def validate_all_selections_are_in_stock(self, selections: list[PartOptionSelection]) -> bool:
+        part_options_ids: list[UUID] = [v for config in selections for v in config.values()]
             
         part_options: list[PartOption] = self.product_repo.get_part_options(ids=part_options_ids)
 

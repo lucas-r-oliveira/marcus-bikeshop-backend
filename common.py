@@ -4,7 +4,8 @@ from sqlalchemy import DECIMAL, MetaData, TypeDecorator
 
 metadata = MetaData()
 
-type PartConfiguration = dict[UUID, UUID]
+type PartOptionSelection = dict[UUID, UUID] # { part_id: option_id}
+# It can probably be reduced to just option id tbh
 
 @dataclass(frozen=True)
 class Money:
