@@ -1,6 +1,8 @@
 from uuid import uuid4
 from abc import abstractmethod, ABC
-from product.domain.model import PartOption, Product, ProductPart
+
+from sqlalchemy.orm import joinedload
+from product.domain.model import PartConfiguration, PartOption, Product, ProductPart
 from sqlalchemy import text
 
 class AbstractProductRepository(ABC):
@@ -40,10 +42,20 @@ class SQLAlchemyProductRepository(AbstractProductRepository):
 
 
     def get(self, product_id) -> Product | None:
-        return self.session.query(Product).filter_by(id=product_id).one_or_none()
+        return self.session.query(Product)\
+            .options(
+                joinedload(Product.parts).joinedload(ProductPart.options),  #type: ignore
+                joinedload(Product.part_configs).joinedload(PartConfiguration.available_options) #type: ignore
+            ).filter_by(id=product_id).one_or_none()
 
     def get_all(self):
-        return self.session.query(Product).all() or []
+        # return self.session.query(Product).all() or []
+        return self.session.query(Product)\
+        .options(
+            joinedload(Product.parts).joinedload(ProductPart.options), #type: ignore
+            joinedload(Product.part_configs).joinedload(PartConfiguration.available_options) #type: ignore
+        )\
+        .all() or []
 
     def create_part(self, part):
         self.session.add(part)

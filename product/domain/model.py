@@ -52,7 +52,7 @@ class PartConfiguration:
     available_options: list[PartOption]
 
     def __init__(self, 
-                 # product_id: UUID, 
+                 #product_id: UUID, 
                  part_id: UUID, 
                  available_options):
         self.id = uuid4()

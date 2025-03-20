@@ -1,4 +1,5 @@
 from flask import Flask, g
+from flask_pydantic_api import apidocs_views
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, registry
 
@@ -41,6 +42,7 @@ def remove_session():
 
 app.register_blueprint(create_product_bp(SessionLocal))
 app.register_blueprint(create_orders_bp(SessionLocal))
+app.register_blueprint(apidocs_views.blueprint, url_prefix="/apidocs")
 
 @app.route("/")
 def hello_world():

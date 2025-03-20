@@ -7,7 +7,7 @@ from sqlalchemy import (
     Table,
 )
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.sqltypes import UUID
 
 from common import MoneyType, metadata
@@ -90,12 +90,14 @@ def start_mappers(mapper_registry):
         part_configuration,
         properties={
             "id": part_configuration.c.id,
-            "product_id": part_configuration.c.product_id,
+            # "product_id": part_configuration.c.product_id,
             "part_id": part_configuration.c.part_id,
             "available_options": relationship(
                 model.PartOption,
                 secondary=part_configuration_options,
-                collection_class=list
+                # primaryjoin=(part_configuration.c.id == part_configuration_options.c.configuration_id),
+                # secondaryjoin=(part_configuration_options.c.option_id==part_option.c.id),
+                collection_class=list,
             )
         }
     )
@@ -111,6 +113,6 @@ def start_mappers(mapper_registry):
             "image_url": product.c.image_url,
             "category": product.c.category,
             "parts": relationship(model.ProductPart, backref="product"),
-            "part_configurations": relationship(model.PartConfiguration)
+            "part_configs": relationship(model.PartConfiguration, backref="product")
         }
     )
