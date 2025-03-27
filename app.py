@@ -1,5 +1,6 @@
 from flask import Flask, g
 from flask_pydantic_api import apidocs_views
+from flask_cors import CORS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, registry
 
@@ -30,6 +31,7 @@ init_db(metadata, sqlalchemy_engine)
 SessionLocal = scoped_session(sessionmaker(bind=sqlalchemy_engine))
 
 app = Flask(__name__)
+cors = CORS(app)
 app.url_map.strict_slashes = False
 
 @app.before_request

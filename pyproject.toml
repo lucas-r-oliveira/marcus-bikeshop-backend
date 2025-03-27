@@ -11,6 +11,7 @@ dependencies = [
     "Flask-SQLAlchemy==3.1.1",
     "flask-pydantic-api==1.5.0",
     "flask-pydantic-api[serializer]",
+    "flask-cors==5.0.1",
 
     # should be in a dependencies.test or something    
     "pytest",
