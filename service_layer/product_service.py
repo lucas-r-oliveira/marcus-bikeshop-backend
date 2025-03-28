@@ -43,6 +43,12 @@ class ProductService:
         self.product_repo.add(product)
         return product
 
+    def delete_product(self, product_id: UUID):
+        try:
+            self.product_repo.remove(product_id)
+        except Exception as e:
+            raise
+
     def get_product(self, product_id: UUID) -> Product | None:
         return self.product_repo.get(product_id)
 

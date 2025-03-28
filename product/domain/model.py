@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Literal
 from uuid import uuid4, UUID
 
@@ -45,23 +46,55 @@ class ProductPart:
         return [opt for opt in self.options if opt.in_stock]
 
    
+# TODO: review entity vs VO
+#class PartConfiguration:
+#    id: UUID
+#    # product_id: UUID
+#    part_name: str
+#    part_id: UUID
+#    available_options: list[PartOption]
+#
+#    def __init__(self, 
+#                 #product_id: UUID, 
+#                 part_id: UUID, 
+#                 available_options):
+#        self.id = uuid4()
+#        self.part_id = part_id
+#        # self.product_id = product_id
+#        self.available_options = available_options
+#        # assert len(self.available_options) >= 1
+@dataclass(frozen=True) # should be Frozen=True, its False for compatibility reasons
 class PartConfiguration:
-    id: UUID
-    # product_id: UUID
+    # part_name: str TODO: review
     part_id: UUID
+    selected_option: PartOption
     available_options: list[PartOption]
 
-    def __init__(self, 
-                 #product_id: UUID, 
-                 part_id: UUID, 
-                 available_options):
-        self.id = uuid4()
-        self.part_id = part_id
-        # self.product_id = product_id
-        self.available_options = available_options
-        # assert len(self.available_options) >= 1
+    def __post_init__(self):
+        if self.selected_option not in self.available_options:
+            raise ValueError("Selected option must be from available options")
 
 type ProductType = Literal["Bicycle"]
+
+type CharacteristicType = Literal[
+    "Frame Type", 
+    "Frame Finish",
+    "Wheels", 
+    "Rim Color", 
+    "Chain",
+    "Size", 
+    "Brake Type",
+    "Suspension"
+] 
+
+@dataclass
+class CharacteristicOption:
+    id: str #TODO: UUID?
+    type: CharacteristicType
+    name: str
+    in_stock: bool = True
+    
+
 
 class Product:
     id: UUID
@@ -71,8 +104,10 @@ class Product:
     image_url: str
     category: str 
     type: ProductType = "Bicycle" 
-    parts: list[ProductPart] = []
-    part_configs: list[PartConfiguration] = []
+    # parts: list[ProductPart] = []
+    # part_configs: list[PartConfiguration] = []
+    default_characteristics: list[CharacteristicOption]
+    available_characteristics: list[CharacteristicOption]
 
     def __init__(
             self, 

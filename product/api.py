@@ -1,9 +1,11 @@
+from decimal import Decimal
 from uuid import UUID
+from product.domain.model import CharacteristicType
 from product.repository import SQLAlchemyProductRepository
 from service_layer.product_service import ProductService
 from common import Money, PartOptionSelection
 
-from flask import Blueprint, g 
+from flask import Blueprint, g, jsonify 
 from flask_pydantic_api.api_wrapper import pydantic_api
 from pydantic import BaseModel, field_serializer
 
@@ -25,10 +27,18 @@ class ProductPartResponse(BaseModel):
         from_attributes=True
 
 class PartConfigurationResponse(BaseModel):
-    id: UUID
+    # id: UUID
     part_id: UUID
+    # part_name: str
     available_options: list[PartOptionResponse]
 
+    class Config:
+        from_attributes=True
+
+class CharacteristicOptionResponse(BaseModel):
+    name: str
+    in_stock: bool
+    characteristic_type: CharacteristicType
     class Config:
         from_attributes=True
 
@@ -40,8 +50,10 @@ class ProductResponse(BaseModel):
     currency: Money = Money(0, currency="EUR")
     image_url: str
     category: str
-    parts: list[ProductPartResponse]
-    part_configs: list[PartConfigurationResponse]
+    # parts: list[ProductPartResponse]
+    # part_configs: list[PartConfigurationResponse]
+    default_characteristics: list[CharacteristicOptionResponse]
+    available_characteristics: list[CharacteristicOptionResponse]
     # type
 
     class Config:
@@ -49,7 +61,8 @@ class ProductResponse(BaseModel):
 
     @field_serializer("base_price")
     def serialize_base_price(self, money: Money):
-        return money.amount
+        return round(money.amount, 2)
+        # TODO: return Decimal(money.amount)
 
     @field_serializer("currency")
     def serialize_currency(self, money: Money):
@@ -92,21 +105,6 @@ def create_product_bp(session_factory):
     def get_all_bicycle_products() -> list[ProductResponse]: 
         service = get_service()
         products = service.list_products()
-
-        # return [
-        #     ProductResponse(
-        #         id=product.id, 
-        #         name=product.name, 
-        #         description=product.description, 
-        #         base_price=product.base_price.amount, 
-        #         currency=product.base_price.currency, 
-        #         image_url=product.image_url,
-        #         parts=product.parts, 
-        #         part_configs=product.part_configs, #type: ignore
-        #         category=product.category
-        #     ).model_dump() for product in service.list_products()
-        # ]
-
         return [ProductResponse.model_validate(product).model_dump() for product in products]
 
     @product_bp.post("/bicycles") # type: ignore
@@ -140,6 +138,24 @@ def create_product_bp(session_factory):
             # parts=product.parts,
             category=product.category
         ) 
+
+    @product_bp.delete("/bicycles/<uuid:id>") # type: ignore
+    @pydantic_api(
+        name="Delete a bicycle product",
+        tags=["products", "bicycles"],
+        success_status_code=204,
+    )
+    def delete_bicycle_product(id: UUID) -> str: #type: ignore
+        service = get_service()
+
+        try:
+            service.delete_product(product_id=id)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 404
+
+        return ('', 204)
+
+
 
 
 

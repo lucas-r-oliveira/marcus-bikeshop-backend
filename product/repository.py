@@ -1,13 +1,17 @@
-from uuid import uuid4
+from uuid import UUID
 from abc import abstractmethod, ABC
 
 from sqlalchemy.orm import joinedload
-from product.domain.model import PartConfiguration, PartOption, Product, ProductPart
+from product.domain.model import CharacteristicOption, PartConfiguration, PartOption, Product, ProductPart
 from sqlalchemy import text
 
 class AbstractProductRepository(ABC):
     @abstractmethod
     def add(self, product: Product):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove(self, product_id) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -40,20 +44,45 @@ class SQLAlchemyProductRepository(AbstractProductRepository):
         self.session.add(product)
         self.session.commit()
 
+    def remove(self, product_id: UUID):
+        try:
+            # product = self.session.query(Product).filter_by(id=product_id).first()
+            product = self.session.execute(
+                text("SELECT * FROM products WHERE id = :product_id"), 
+                {"product_id": product_id}
+            ).first()
+
+            # print(product)
+            
+            if product:
+                self.session.delete(product)
+                self.session.commit()
+                print(f"Successfully deleted product {product_id}")  
+            else:
+                print(f"No product found with id {product_id}")  
+                raise ValueError("No product found with id {product_id}")
+        
+        except Exception as e:
+            self.session.rollback()
+            print(f"Error deleting product: {e}")
+            raise
+
 
     def get(self, product_id) -> Product | None:
         return self.session.query(Product)\
             .options(
-                joinedload(Product.parts).joinedload(ProductPart.options),  #type: ignore
-                joinedload(Product.part_configs).joinedload(PartConfiguration.available_options) #type: ignore
+                #joinedload(Product.parts).joinedload(ProductPart.options),  #type: ignore
+                # joinedload(Product.part_configs).joinedload(PartConfiguration.available_options) #type: ignore
             ).filter_by(id=product_id).one_or_none()
 
     def get_all(self):
         # return self.session.query(Product).all() or []
         return self.session.query(Product)\
         .options(
-            joinedload(Product.parts).joinedload(ProductPart.options), #type: ignore
-            joinedload(Product.part_configs).joinedload(PartConfiguration.available_options) #type: ignore
+            joinedload(Product.default_characteristics), #type: ignore
+            joinedload(Product.available_characteristics)#type: ignore
+            # joinedload(Product.parts).joinedload(ProductPart.options), #type: ignore
+            # joinedload(Product.part_configs).joinedload(PartConfiguration.available_options) #type: ignore
         )\
         .all() or []
 
@@ -88,6 +117,9 @@ class InMemoryProductRepository(AbstractProductRepository):
 
     def add(self, product):
         self._products.add(product)
+   
+    def remove(self, product_id):
+        self._products = set([product for product in self._products if product.id != product_id])
 
     def get(self, product_id):
         return next(p for p in self._products if p.id == product_id)
